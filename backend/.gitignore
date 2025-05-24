@@ -1,0 +1,43 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Dependency directories
+bower_components/
+jspm_packages/
+
+# Coverage and test results
+coverage/
+.nyc_output/
+
+# Build outputs
+dist/
+build/
+
+# Optional: Firebase cache/temp if you're using Firebase
+.firebase/
+.firebaserc
+
+# Optional: Ignore uploads/temp folders if storing user files locally
+uploads/
+temp/
