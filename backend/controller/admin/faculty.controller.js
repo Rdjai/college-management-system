@@ -1,19 +1,22 @@
 const Faculty = require('../../models/User_Management/faculty.model');
 
-async function generateEmpid(employeeId) {
-    try {
-        const existingFaculty = await Faculty.findById(employeeId);
-        if (!existingFaculty) throw new Error("Invalid deparment ID");
-    } catch (error) {
-
+async function generateEmpid() {
+    const currentYear = new Date().getFullYear();
+    const lastFaculty = await Faculty.findOne({ employeeId: new RegExp(`LNC${currentYear}`) }).sort({ createdAt: -1 });
+    let sequence = 1;
+    if (lastFaculty) {
+        const lastId = lastFaculty.employeeId;
+        const lastseq = parseInt(lastId.substring(7));
+        sequence = lastseq + 1;
     }
+    const newEmployeeId = `LNC${currentYear}${sequence.toString().padStart(3, '0')}`
+    return newEmployeeId;
 }
 
 const createFaculty = async (req, res) => {
     try {
         const {
             name,
-            employeeId,
             gender,
             dateOfBirth,
             email,
@@ -28,7 +31,7 @@ const createFaculty = async (req, res) => {
             profileImageUrl,
             documents
         } = req.body;
-
+        const employeeId = await generateEmpid()
         if (!name || !employeeId || !gender || !dateOfBirth || !email || !phone || !department || !designation) {
             return res.status(400).json({ message: "Please fill all required fields." });
         }
