@@ -1,11 +1,10 @@
-const studentSchema = require("../models/User_Management/student.model")
-const departmentSchema = require("../models/Academic_Structure/department.model")
+const studentSchema = require("../../models/User_Management/student.model")
+const departmentSchema = require("../../models/Academic_Structure/department.model")
 
 async function generateRollNumber(departmentId) {
     const department = await departmentSchema.findById(departmentId);
     if (!department || department.code) throw new Error("Invalid deparment ID");
-    const deparmentcode = department.code.toUpperCase();
-
+    const deptCode = department.code.toUpperCase();
 
     const findLastSudent = await studentSchema.find({
         department: departmentId,
@@ -20,12 +19,16 @@ async function generateRollNumber(departmentId) {
     }
     return `${deptCode}${nextNumber}`;
 }
-exports.registerStudent = async (req, res) => {
+const registerStudent = async (req, res) => {
+    console.log("Request Body:", req.body);
 
     try {
+        if (!req.body) {
+            return res.status(400).json({ message: "Request body is missing" });
+        }
+
         const {
             name,
-            enrollmentNumber,
             gender,
             dateOfBirth,
             email,
@@ -41,23 +44,24 @@ exports.registerStudent = async (req, res) => {
             attendance
         } = req.body;
 
-        if (!name || !enrollmentNumber || !gender || !dateOfBirth || !email || !phone || !department || !semester || !course) {
+        if (!name || !gender || !dateOfBirth || !email || !phone || !department || !semester || !course) {
             return res.status(400).json({ message: 'Please fill all required fields.' });
         }
 
+        // Generate Enrollment Number dynamically
+        const enrollmentNumber = await generateRollNumber(department);
 
+        // Check for duplicates
         const existingStudent = await studentSchema.findOne({
             $or: [{ enrollmentNumber }, { email }]
-        })
+        });
         if (existingStudent) {
             return res.status(409).json({ message: 'Enrollment Number or Email already registered.' });
         }
-        const NewenrollmentNumber = await generateRollNumber(department)
 
         const newStudent = new studentSchema({
             name,
-            enrollmentNumber,
-            rollNumber,
+            enrollmentNumber, // auto-generated
             gender,
             dateOfBirth,
             email,
@@ -71,8 +75,10 @@ exports.registerStudent = async (req, res) => {
             documents: documents || [],
             marks: marks || [],
             attendance: attendance || []
-        })
+        });
+
         await newStudent.save();
+
         res.status(201).json({ message: 'Student registered successfully', student: newStudent });
 
     } catch (error) {
@@ -80,3 +86,5 @@ exports.registerStudent = async (req, res) => {
         res.status(500).json({ message: 'Server error, please try again later.' });
     }
 }
+
+module.exports = { registerStudent }
